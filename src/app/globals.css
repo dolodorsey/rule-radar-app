@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@300;400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --rr-bg: #0a0e1a;
+  --rr-bg-elevated: #111728;
+  --rr-bg-card: #151c30;
+  --rr-bg-hover: #1a2340;
+  --rr-surface: #1e2848;
+  --rr-text: #F0EDE6;
+  --rr-text-secondary: #9BA3B8;
+  --rr-text-muted: #5E6680;
+  --rr-accent: #C87941;
+  --rr-accent-hover: #D98E56;
+  --rr-accent-muted: rgba(200, 121, 65, 0.15);
+  --rr-border: rgba(240, 237, 230, 0.08);
+  --rr-border-hover: rgba(240, 237, 230, 0.15);
+  --rr-federal: #818CF8;
+  --rr-state: #60A5FA;
+  --rr-county: #34D399;
+  --rr-city: #FBBF24;
+  --rr-status-published: #4ADE80;
+  --rr-status-draft: #FBBF24;
+  --rr-status-repealed: #F87171;
+  --rr-status-amendment: #60A5FA;
+  --rr-status-new: #34D399;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'DM Sans', -apple-system, sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+body { background: var(--rr-bg); color: var(--rr-text); font-family: var(--font-body); font-size: 15px; line-height: 1.6; }
+::selection { background: var(--rr-accent); color: #0a0e1a; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--rr-bg); }
+::-webkit-scrollbar-thumb { background: var(--rr-text-muted); border-radius: 3px; }
+
+a { color: var(--rr-accent); text-decoration: none; transition: color 150ms; }
+a:hover { color: var(--rr-accent-hover); }
+
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
