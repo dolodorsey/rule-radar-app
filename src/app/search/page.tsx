@@ -1,6 +1,8 @@
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 export default async function SearchPage({ searchParams }: { searchParams: { q?: string; jurisdiction?: string; topic?: string; type?: string } }) {
   const q = searchParams.q || ''
   

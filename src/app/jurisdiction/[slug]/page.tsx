@@ -2,6 +2,8 @@ import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+export const dynamic = 'force-dynamic'
+
 export default async function JurisdictionDetailPage({ params }: { params: { slug: string } }) {
   const { data: jurisdiction } = await supabase
     .from('rr_jurisdictions')

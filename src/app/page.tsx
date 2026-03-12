@@ -1,5 +1,7 @@
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 const TOPICS = [
   { name: 'Labor & Employment', slug: 'labor-employment', icon: '⚖️' },
   { name: 'Zoning & Land Use', slug: 'zoning-land-use', icon: '🏗️' },
@@ -152,14 +154,6 @@ export default function LandingPage() {
                 borderRadius: 12, padding: '24px',
                 transition: 'all 250ms cubic-bezier(0.16,1,0.3,1)',
                 cursor: 'pointer',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.borderColor = 'rgba(200,121,65,0.3)'
-                e.currentTarget.style.transform = 'translateY(-2px)'
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.borderColor = 'var(--rr-border)'
-                e.currentTarget.style.transform = 'translateY(0)'
               }}
               >
                 <div style={{ fontSize: 28, marginBottom: 12 }}>{topic.icon}</div>

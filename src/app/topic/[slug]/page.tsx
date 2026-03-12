@@ -2,6 +2,8 @@ import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+export const dynamic = 'force-dynamic'
+
 export default async function TopicDetailPage({ params }: { params: { slug: string } }) {
   const { data: topic } = await supabase
     .from('rr_topics')
