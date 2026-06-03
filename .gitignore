@@ -5,3 +5,10 @@ node_modules/
 *.tsbuildinfo
 next-env.d.ts
 .DS_Store
+
+# Capacitor
+ios/App/build/
+ios/App/Pods/
+ios/App/.build/
+android/.gradle/
+android/app/build/
