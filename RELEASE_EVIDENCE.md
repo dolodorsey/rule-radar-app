@@ -34,4 +34,5 @@
 
 - Native iOS and Android downloads remain unavailable until genuine signed artifacts exist.
 - The catalog needs editorial verification and source-link expansion; its status is shown honestly in the product.
+- Current priority scope is state and federal: 708 records across 52 jurisdictions. Only 4 records currently have official-source URLs and none are marked verified, so the interface now exposes that limitation and defers county/city expansion.
 - Current Next.js transitive PostCSS/Sharp advisories remain upstream in the installed stable framework release; no user-supplied CSS or image processing endpoint is exposed by this static application.

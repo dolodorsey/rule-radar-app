@@ -23,7 +23,7 @@ const projectUrl = "https://dzlmtvodpyhetvektfuo.supabase.co";
 const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 const supabase = publishableKey ? createClient(projectUrl, publishableKey) : null;
 
-const jurisdictionTypes = ["All", "Federal", "State", "County", "City"];
+const jurisdictionTypes = ["Federal", "State"];
 
 function confidenceLabel(value: number | null) {
   if (value === null) return "Review status recorded";
@@ -36,7 +36,7 @@ export default function TheLaw() {
   const [laws, setLaws] = useState<Law[]>([]);
   const [total, setTotal] = useState(0);
   const [query, setQuery] = useState("");
-  const [jurisdiction, setJurisdiction] = useState("All");
+  const [jurisdiction, setJurisdiction] = useState("Federal");
   const [selected, setSelected] = useState<Law | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -64,9 +64,7 @@ export default function TheLaw() {
         const safe = query.trim().replace(/[,%()]/g, " ");
         request = request.or(`law_title.ilike.%${safe}%,short_summary.ilike.%${safe}%,affected_parties_text.ilike.%${safe}%`);
       }
-      if (jurisdiction !== "All") {
-        request = request.eq("rr_jurisdictions.jurisdiction_type", jurisdiction.toLowerCase());
-      }
+      request = request.eq("rr_jurisdictions.jurisdiction_type", jurisdiction.toLowerCase());
 
       const { data, count, error: requestError } = await request;
       if (cancelled) return;
@@ -103,11 +101,11 @@ export default function TheLaw() {
         <div className="hero-content">
           <span className="eyebrow"><ShieldCheck size={15} /> Source-aware legal research</span>
           <h1>Know the law.<br /><em>Track the change.</em></h1>
-          <p>Search source-aware legal records across federal, state, county, and city jurisdictions—then go directly to the official source when one is available.</p>
+          <p>Research federal and state legal records first—then go directly to an official government source when one has been reviewed and linked.</p>
           <div className="hero-stats">
-            <span><strong>711</strong> catalog records</span>
-            <span><strong>65</strong> jurisdictions</span>
-            <span><strong>Official</strong> source links</span>
+            <span><strong>708</strong> state + federal records</span>
+            <span><strong>52</strong> priority jurisdictions</span>
+            <span><strong>4</strong> official links today</span>
           </div>
         </div>
       </section>
@@ -121,13 +119,14 @@ export default function TheLaw() {
         <div className="filters" aria-label="Jurisdiction filters">
           {jurisdictionTypes.map((type) => <button key={type} className={jurisdiction === type ? "active" : ""} onClick={() => setJurisdiction(type)}>{type}</button>)}
         </div>
+        <p className="priority-note"><ShieldCheck size={15} /> State and federal are the active source priority. County and city coverage will follow after this verification pass.</p>
       </section>
 
       <section className="catalog">
         <div className="catalog-heading">
           <div>
             <span className="section-label">LEGAL CATALOG</span>
-            <h2>{query ? `Results for “${query}”` : "Catalog records"}</h2>
+            <h2>{query ? `Results for “${query}”` : `${jurisdiction} records`}</h2>
           </div>
           <span className="result-count">{loading ? "Searching…" : `${total.toLocaleString()} records`}</span>
         </div>

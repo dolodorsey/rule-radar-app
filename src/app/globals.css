@@ -31,6 +31,8 @@ button:focus-visible,a:focus-visible,input:focus-visible { outline:2px solid var
 .search-box input { flex:1; border:0; outline:0; background:transparent; min-width:0; font-size:15px; }
 .icon-button { border:0; background:transparent; display:grid; place-items:center; cursor:pointer; color:#6b6256; }
 .filters { display:flex; gap:8px; flex-wrap:wrap; margin-top:15px; }
+.priority-note { margin:14px 0 0; display:flex; align-items:flex-start; gap:8px; color:var(--muted); font-size:11px; line-height:1.5; }
+.priority-note svg { flex:0 0 auto; color:var(--gold-light); }
 .filters button { border:1px solid rgba(255,255,255,.12); color:#c8c1b7; background:transparent; padding:9px 15px; cursor:pointer; font-size:11px; letter-spacing:.05em; }
 .filters button.active { background:var(--gold); border-color:var(--gold); color:#080706; font-weight:700; }
 .catalog { width:min(1120px,calc(100% - 36px)); margin:78px auto 92px; }
