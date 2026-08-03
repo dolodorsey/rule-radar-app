@@ -13,17 +13,21 @@
 - All current records retain their database verification status (`unverified` at this checkpoint).
 - The UI never represents an unverified record as verified.
 - Official source buttons only appear when a citation has a published official URL.
+- Nine federal and Georgia government portals passed an automated reachability check and are labeled `reachable`, not law-record verified.
+- A source-mapping task now exists for all 52 state/federal priority jurisdictions; federal and Georgia are urgent, with the remaining states queued high.
 
 ## Interface
 
 - Uses the approved assets from `WEBSITE GRAPHICS/LAW GRAPHICS`.
 - Responsive black-marble and gold design for desktop and mobile.
 - Live search, jurisdiction filters, record details, source status, and legal disclaimer.
+- Added an official-source library that clearly separates portal availability from editorial verification of individual laws.
 - Generic or nonexistent Android/TestFlight links were removed.
 
 ## Verification
 
 - Next.js production build: passed
+- ESLint: passed
 - TypeScript: passed
 - Live public catalog request: HTTP 200
 - Desktop browser: live search, result count, detail panel, missing-source handling passed

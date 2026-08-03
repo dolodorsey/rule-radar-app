@@ -54,6 +54,16 @@ button:focus-visible,a:focus-visible,input:focus-visible { outline:2px solid var
 .state-card strong { color:#fff; font:500 24px Georgia,serif; margin-top:14px; }
 .state-card p { color:var(--muted); }
 .state-card.error { border-color:rgba(188,72,56,.45); }
+.source-library { width:min(1120px,calc(100% - 36px)); margin:0 auto 100px; }
+.source-library .catalog-heading h2 { font:500 clamp(34px,5vw,58px)/1 Georgia,serif; margin:12px 0 0; letter-spacing:-.035em; }
+.source-library-note { max-width:760px; color:var(--muted); line-height:1.7; margin:24px 0 28px; }
+.source-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.source-card { border:1px solid var(--line); padding:24px; min-height:230px; background:rgba(255,255,255,.018); display:flex; flex-direction:column; text-decoration:none; transition:.2s; }
+.source-card:hover { border-color:var(--gold); transform:translateY(-2px); }
+.source-card>div { display:flex; justify-content:space-between; color:var(--gold); }
+.source-card h3 { color:#fff; font:500 22px/1.15 Georgia,serif; margin:25px 0 12px; }
+.source-card p { color:var(--muted); font-size:13px; line-height:1.55; flex:1; }
+.source-card small { color:var(--gold-light); text-transform:uppercase; letter-spacing:.08em; font-size:9px; }
 .skeleton { height:275px; background:linear-gradient(100deg,#111 20%,#1b1915 40%,#111 60%); background-size:200% 100%; animation:shine 1.3s infinite; border:1px solid var(--line); }
 @keyframes shine { to { background-position-x:-200%; } }
 .trust-band { width:min(1120px,calc(100% - 36px)); margin:0 auto 100px; display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--line); }
@@ -89,6 +99,8 @@ footer small { color:#615c54; text-transform:uppercase; letter-spacing:.12em; }
   .hero-content { padding-bottom:80px; }
   .hero h1 { font-size:55px; }
   .law-grid,.loading-grid { grid-template-columns:1fr; }
+  .source-grid { grid-template-columns:1fr; }
+  .source-library .catalog-heading { align-items:flex-start; flex-direction:column; }
   .trust-band { grid-template-columns:1fr; }
   .trust-band > div { border-right:0; border-bottom:1px solid var(--line); }
   .trust-band > div:last-child { border-bottom:0; }
