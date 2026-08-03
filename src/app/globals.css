@@ -1,48 +1,109 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@300;400;500&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --rr-bg: #0a0e1a;
-  --rr-bg-elevated: #111728;
-  --rr-bg-card: #151c30;
-  --rr-bg-hover: #1a2340;
-  --rr-surface: #1e2848;
-  --rr-text: #F0EDE6;
-  --rr-text-secondary: #9BA3B8;
-  --rr-text-muted: #5E6680;
-  --rr-accent: #C87941;
-  --rr-accent-hover: #D98E56;
-  --rr-accent-muted: rgba(200, 121, 65, 0.15);
-  --rr-border: rgba(240, 237, 230, 0.08);
-  --rr-border-hover: rgba(240, 237, 230, 0.15);
-  --rr-federal: #818CF8;
-  --rr-state: #60A5FA;
-  --rr-county: #34D399;
-  --rr-city: #FBBF24;
-  --rr-status-published: #4ADE80;
-  --rr-status-draft: #FBBF24;
-  --rr-status-repealed: #F87171;
-  --rr-status-amendment: #60A5FA;
-  --rr-status-new: #34D399;
-  --font-display: 'Cormorant Garamond', Georgia, serif;
-  --font-body: 'DM Sans', -apple-system, sans-serif;
-  --font-mono: 'DM Mono', monospace;
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+:root { --ink:#070706; --panel:#11100e; --gold:#c99a43; --gold-light:#f1d594; --paper:#f4efe5; --muted:#a9a296; --line:rgba(222,185,111,.18); }
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; background:var(--ink); }
+body { margin:0; background:var(--ink); color:var(--paper); font-family:Arial,Helvetica,sans-serif; -webkit-font-smoothing:antialiased; }
+button,input { font:inherit; }
+button,a { -webkit-tap-highlight-color:transparent; }
+button:focus-visible,a:focus-visible,input:focus-visible { outline:2px solid var(--gold-light); outline-offset:3px; }
+.topbar { height:76px; padding:0 clamp(20px,5vw,72px); display:flex; align-items:center; justify-content:space-between; position:absolute; inset:0 0 auto; z-index:5; border-bottom:1px solid rgba(255,255,255,.12); }
+.brand { display:flex; gap:12px; align-items:center; color:#fff; text-decoration:none; }
+.brand-mark { width:42px; height:42px; border:1px solid var(--gold); border-radius:50%; display:grid; place-items:center; color:var(--gold-light); font:700 11px Georgia,serif; }
+.brand strong { display:block; font:600 16px Georgia,serif; letter-spacing:.18em; }
+.brand small { display:block; color:#c9c2b8; text-transform:uppercase; font-size:8px; letter-spacing:.18em; margin-top:3px; }
+.download-link { color:#fff; text-decoration:none; display:flex; align-items:center; gap:6px; font-size:12px; text-transform:uppercase; letter-spacing:.12em; }
+.hero { min-height:700px; height:86vh; max-height:900px; position:relative; display:flex; align-items:flex-end; overflow:hidden; }
+.hero-image { position:absolute; inset:0; background:url('/brand/the-law-hero.png') center/cover no-repeat; transform:scale(1.01); }
+.hero-overlay { position:absolute; inset:0; background:linear-gradient(90deg,rgba(4,4,3,.97) 0%,rgba(4,4,3,.78) 38%,rgba(4,4,3,.15) 72%),linear-gradient(0deg,#070706 0%,transparent 45%); }
+.hero-content { position:relative; z-index:2; width:min(1180px,100%); margin:0 auto; padding:140px clamp(22px,6vw,80px) 90px; }
+.eyebrow,.section-label { color:var(--gold-light); display:flex; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:.18em; font-size:10px; font-weight:700; }
+.hero h1 { max-width:720px; margin:24px 0 20px; font:500 clamp(50px,8vw,104px)/.92 Georgia,serif; letter-spacing:-.055em; }
+.hero h1 em { color:var(--gold-light); font-weight:400; }
+.hero p { max-width:580px; color:#d1ccc3; font-size:clamp(15px,1.7vw,19px); line-height:1.7; }
+.hero-stats { display:flex; flex-wrap:wrap; gap:12px; margin-top:34px; }
+.hero-stats span { padding:11px 15px; border:1px solid rgba(255,255,255,.15); background:rgba(5,5,4,.45); backdrop-filter:blur(12px); color:#d6d0c7; font-size:11px; letter-spacing:.06em; }
+.hero-stats strong { color:#fff; margin-right:5px; }
+.search-shell { width:min(1120px,calc(100% - 36px)); margin:-42px auto 0; position:relative; z-index:3; padding:20px; background:rgba(18,17,15,.95); border:1px solid var(--line); box-shadow:0 24px 80px #000; }
+.search-box { display:flex; align-items:center; gap:12px; background:#f7f3eb; color:#181611; padding:0 18px; min-height:62px; }
+.search-box input { flex:1; border:0; outline:0; background:transparent; min-width:0; font-size:15px; }
+.icon-button { border:0; background:transparent; display:grid; place-items:center; cursor:pointer; color:#6b6256; }
+.filters { display:flex; gap:8px; flex-wrap:wrap; margin-top:15px; }
+.filters button { border:1px solid rgba(255,255,255,.12); color:#c8c1b7; background:transparent; padding:9px 15px; cursor:pointer; font-size:11px; letter-spacing:.05em; }
+.filters button.active { background:var(--gold); border-color:var(--gold); color:#080706; font-weight:700; }
+.catalog { width:min(1120px,calc(100% - 36px)); margin:78px auto 92px; }
+.catalog-heading { display:flex; align-items:end; justify-content:space-between; gap:20px; padding-bottom:22px; border-bottom:1px solid var(--line); }
+.catalog h2 { font:500 clamp(34px,5vw,58px)/1 Georgia,serif; margin:12px 0 0; letter-spacing:-.035em; }
+.result-count { color:var(--muted); font-size:12px; }
+.law-grid,.loading-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:24px; }
+.law-card { min-height:275px; display:flex; flex-direction:column; text-align:left; padding:26px; color:var(--paper); border:1px solid var(--line); background:linear-gradient(145deg,#151411,#0d0c0b); cursor:pointer; transition:transform .25s,border-color .25s,background .25s; }
+.law-card:hover { transform:translateY(-4px); border-color:rgba(222,185,111,.48); background:linear-gradient(145deg,#1b1812,#0d0c0b); }
+.card-top,.card-foot { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.jurisdiction { display:flex; align-items:center; gap:5px; color:var(--gold-light); font-size:10px; text-transform:uppercase; letter-spacing:.1em; }
+.law-type { color:#a49c90; font-size:9px; text-transform:uppercase; letter-spacing:.12em; }
+.law-card h3 { font:600 24px/1.18 Georgia,serif; margin:24px 0 8px; letter-spacing:-.02em; }
+.law-card code,.detail-citation { color:var(--gold); font-size:11px; }
+.law-card p { color:#aaa399; line-height:1.65; font-size:13px; flex:1; margin:16px 0 20px; }
+.card-foot { color:var(--gold-light); padding-top:16px; border-top:1px solid rgba(255,255,255,.07); }
+.verified { display:flex; align-items:center; gap:6px; font-size:10px; }
+.state-card { border:1px solid var(--line); margin-top:24px; padding:58px 24px; display:grid; justify-items:center; text-align:center; color:var(--gold-light); }
+.state-card strong { color:#fff; font:500 24px Georgia,serif; margin-top:14px; }
+.state-card p { color:var(--muted); }
+.state-card.error { border-color:rgba(188,72,56,.45); }
+.skeleton { height:275px; background:linear-gradient(100deg,#111 20%,#1b1915 40%,#111 60%); background-size:200% 100%; animation:shine 1.3s infinite; border:1px solid var(--line); }
+@keyframes shine { to { background-position-x:-200%; } }
+.trust-band { width:min(1120px,calc(100% - 36px)); margin:0 auto 100px; display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--line); }
+.trust-band > div { padding:28px; display:flex; gap:15px; color:var(--gold); border-right:1px solid var(--line); }
+.trust-band > div:last-child { border-right:0; }
+.trust-band strong,.trust-band small { display:block; }
+.trust-band strong { color:#fff; font:500 17px Georgia,serif; }
+.trust-band small { color:var(--muted); line-height:1.5; margin-top:6px; }
+footer { border-top:1px solid var(--line); padding:54px max(22px,calc((100vw - 1120px)/2)); }
+footer strong { font:600 18px Georgia,serif; letter-spacing:.18em; }
+footer p { max-width:760px; color:#8e887e; font-size:11px; line-height:1.7; margin:18px 0; }
+footer small { color:#615c54; text-transform:uppercase; letter-spacing:.12em; }
+.modal-backdrop { position:fixed; inset:0; z-index:20; background:rgba(0,0,0,.78); backdrop-filter:blur(10px); display:flex; justify-content:flex-end; }
+.detail-panel { width:min(680px,100%); height:100%; overflow:auto; background:#11100e; border-left:1px solid var(--line); padding:clamp(28px,5vw,64px); position:relative; box-shadow:-30px 0 90px #000; }
+.close-button { position:absolute; right:24px; top:24px; width:42px; height:42px; display:grid; place-items:center; background:transparent; color:#fff; border:1px solid var(--line); cursor:pointer; }
+.back-button { display:flex; align-items:center; gap:7px; background:transparent; color:var(--gold-light); border:0; padding:0; cursor:pointer; font-size:11px; text-transform:uppercase; letter-spacing:.1em; }
+.detail-meta { display:flex; gap:7px; flex-wrap:wrap; margin:52px 0 20px; }
+.detail-meta span { border:1px solid var(--line); color:#c4bdb2; padding:7px 10px; font-size:9px; text-transform:uppercase; letter-spacing:.1em; }
+.detail-panel > h2 { font:500 clamp(38px,6vw,62px)/1.03 Georgia,serif; letter-spacing:-.04em; margin:0 0 14px; }
+.detail-panel section { margin-top:28px; padding-top:24px; border-top:1px solid var(--line); }
+.detail-panel section h3 { color:var(--gold-light); text-transform:uppercase; letter-spacing:.13em; font-size:9px; margin:0 0 10px; }
+.detail-panel section p { color:#beb7ad; line-height:1.75; font-size:14px; }
+.detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.official-button,.source-unavailable { margin-top:34px; min-height:54px; padding:0 20px; display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; }
+.official-button { background:var(--gold); color:#080706; font-weight:700; }
+.source-unavailable { border:1px solid var(--line); color:var(--muted); font-size:12px; }
+@media (max-width:760px) {
+  .download-link { font-size:0; }
+  .download-link svg { width:20px; height:20px; }
+  .hero { min-height:720px; height:90vh; }
+  .hero-image { background-image:url('/brand/the-law-mobile.png'); background-position:center top; }
+  .hero-overlay { background:linear-gradient(0deg,#070706 0%,rgba(4,4,3,.82) 54%,rgba(4,4,3,.25) 100%); }
+  .hero-content { padding-bottom:80px; }
+  .hero h1 { font-size:55px; }
+  .law-grid,.loading-grid { grid-template-columns:1fr; }
+  .trust-band { grid-template-columns:1fr; }
+  .trust-band > div { border-right:0; border-bottom:1px solid var(--line); }
+  .trust-band > div:last-child { border-bottom:0; }
+  .detail-grid { grid-template-columns:1fr; gap:0; }
 }
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
-body { background: var(--rr-bg); color: var(--rr-text); font-family: var(--font-body); font-size: 15px; line-height: 1.6; }
-::selection { background: var(--rr-accent); color: #0a0e1a; }
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--rr-bg); }
-::-webkit-scrollbar-thumb { background: var(--rr-text-muted); border-radius: 3px; }
-
-a { color: var(--rr-accent); text-decoration: none; transition: color 150ms; }
-a:hover { color: var(--rr-accent-hover); }
-
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion:reduce) { * { scroll-behavior:auto !important; animation:none !important; transition:none !important; } }
+.download-page { min-height:100vh; display:grid; place-items:center; position:relative; overflow:hidden; padding:90px 20px 40px; }
+.download-art { position:absolute; inset:0; background:url('/brand/the-law-mobile.png') center/cover no-repeat; }
+.download-shade { position:absolute; inset:0; background:linear-gradient(90deg,rgba(4,4,3,.97),rgba(4,4,3,.74)),linear-gradient(0deg,#070706,transparent); }
+.download-card { position:relative; z-index:2; width:min(520px,100%); padding:clamp(28px,6vw,54px); border:1px solid var(--line); background:rgba(10,9,8,.86); backdrop-filter:blur(18px); box-shadow:0 30px 100px #000; }
+.back-home { color:var(--gold-light); display:flex; align-items:center; gap:7px; text-decoration:none; font-size:10px; letter-spacing:.14em; }
+.download-mark { width:72px; height:72px; border:1px solid var(--gold); color:var(--gold-light); border-radius:50%; display:grid; place-items:center; margin:45px 0 22px; font:700 16px Georgia,serif; }
+.download-card h1 { font:500 clamp(46px,9vw,72px)/.95 Georgia,serif; letter-spacing:-.045em; margin:18px 0; }
+.download-copy { color:#c0b9ae; line-height:1.7; font-size:14px; }
+.download-card .official-button { margin:28px 0 22px; }
+.platform-note { display:flex; gap:13px; align-items:flex-start; padding:16px 0; border-top:1px solid var(--line); color:var(--gold-light); }
+.platform-note span,.platform-note strong,.platform-note small { display:block; }
+.platform-note strong { color:#fff; font:500 15px Georgia,serif; }
+.platform-note small { color:var(--muted); line-height:1.5; margin-top:5px; }
+.download-disclaimer { color:#716b62; font-size:9px; line-height:1.6; margin:20px 0 0; }

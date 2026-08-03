@@ -1,5 +1,6 @@
 node_modules/
 .next/
+out/
 .env.local
 .env*.local
 *.tsbuildinfo
@@ -12,3 +13,6 @@ ios/App/Pods/
 ios/App/.build/
 android/.gradle/
 android/app/build/
+.vercel
+.env*
+!.env.example

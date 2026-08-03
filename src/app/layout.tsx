@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Rule Radar — Legal Intelligence Platform',
-  description: 'Search, understand, compare, and track laws across city, county, state, and federal jurisdictions. Real citations from official sources.',
+  title: 'THE LAW — Legal Intelligence',
+  description: 'Search source-aware legal records across federal, state, county, and city jurisdictions.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
