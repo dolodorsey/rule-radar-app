@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata = {
   title: "Get THE LAW",
-  description: "Install THE LAW on Android or use the web experience.",
+  description: "Use THE LAW on mobile and track verified native release availability.",
 };
 
 export default function DownloadPage() {
