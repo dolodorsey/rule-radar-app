@@ -1,12 +1,15 @@
 {
   "name": "rule-radar-app",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "verify:backend": "node scripts/verify-backend-config.mjs",
+    "verify": "npm run verify:backend && npm run lint && npm run typecheck && npm run build && npm audit --omit=dev --audit-level=critical",
     "ios:build": "npm run build && npx cap sync ios",
     "ios:open": "npx cap open ios",
     "ios:run": "npx cap run ios",
