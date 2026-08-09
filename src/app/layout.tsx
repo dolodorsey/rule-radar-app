@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import './current-media.css'
+import CurrentLawMotion from './CurrentLawMotion'
 
 export const metadata: Metadata = {
   title: 'THE LAW — Legal Intelligence',
@@ -9,7 +11,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body><CurrentLawMotion />{children}</body>
     </html>
   )
 }
