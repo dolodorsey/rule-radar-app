@@ -59,7 +59,10 @@ for (const disclosure of ['Verified sources', 'Research index', 'Research only',
 
 if (failures.length) {
   console.error('THE LAW backend isolation verification failed:')
-  for (const failure of failures) console.error(`- ${failure}`)
+  for (const failure of failures) {
+    console.error(`- ${failure}`)
+    console.error(`::error title=THE LAW backend isolation::${failure.replaceAll('%','%25').replaceAll('\r','%0D').replaceAll('\n','%0A')}`)
+  }
   process.exit(1)
 }
 
