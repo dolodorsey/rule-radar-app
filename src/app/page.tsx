@@ -34,6 +34,7 @@ type CatalogResponse = {
   total: number;
   limit: number;
   offset: number;
+  trust_mode?: "source_backed" | "research_only";
 };
 
 type LegalSource = {
@@ -49,6 +50,7 @@ type LegalSource = {
 
 type CatalogHealth = {
   total_records: number;
+  research_index_records: number;
   official_sources: number;
   priority_jurisdictions: number;
   machine_checked_records: number;
@@ -58,6 +60,8 @@ type CatalogHealth = {
   records_with_verified_citations: number;
   generated_at: string;
 };
+
+type CatalogMode = "verified" | "research";
 
 const jurisdictionTypes = ["Federal", "State"];
 
@@ -76,6 +80,7 @@ export default function TheLaw() {
   const [total, setTotal] = useState(0);
   const [query, setQuery] = useState("");
   const [jurisdiction, setJurisdiction] = useState("Federal");
+  const [catalogMode, setCatalogMode] = useState<CatalogMode>("verified");
   const [selected, setSelected] = useState<Law | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -92,12 +97,8 @@ export default function TheLaw() {
       ]);
 
       if (cancelled) return;
-      if (!sourcesResult.error) {
-        setOfficialSources((sourcesResult.data as LegalSource[] | null) ?? []);
-      }
-      if (!healthResult.error) {
-        setHealth((healthResult.data as CatalogHealth | null) ?? null);
-      }
+      if (!sourcesResult.error) setOfficialSources((sourcesResult.data as LegalSource[] | null) ?? []);
+      if (!healthResult.error) setHealth((healthResult.data as CatalogHealth | null) ?? null);
     }
 
     void loadControlPlane();
@@ -111,7 +112,8 @@ export default function TheLaw() {
       setLoading(true);
       setError("");
 
-      const { data, error: requestError } = await supabase.rpc("rr_get_public_law_catalog", {
+      const rpcName = catalogMode === "verified" ? "rr_get_public_law_catalog" : "rr_get_public_research_catalog";
+      const { data, error: requestError } = await supabase.rpc(rpcName, {
         p_query: query.trim() || null,
         p_jurisdiction_type: jurisdiction.toLowerCase(),
         p_limit: 80,
@@ -120,7 +122,9 @@ export default function TheLaw() {
 
       if (cancelled) return;
       if (requestError) {
-        setError("The legal catalog could not be loaded. Please try again shortly.");
+        setError(catalogMode === "verified"
+          ? "The source-backed legal catalog could not be loaded. Please try again shortly."
+          : "The research index could not be loaded. Please try again shortly.");
         setLaws([]);
         setTotal(0);
       } else {
@@ -133,13 +137,25 @@ export default function TheLaw() {
 
     const timer = window.setTimeout(() => { void load(); }, query ? 250 : 0);
     return () => { cancelled = true; window.clearTimeout(timer); };
-  }, [query, jurisdiction]);
+  }, [query, jurisdiction, catalogMode]);
 
   const visible = useMemo(() => laws.filter((law) => law.jurisdiction), [laws]);
-  const source = selected?.citations.find((citation) => citation.official_reference_url);
-  const totalRecords = health?.total_records ?? total;
-  const priorityJurisdictions = health?.priority_jurisdictions ?? 52;
-  const machineChecked = health?.machine_checked_records ?? 0;
+  const source = selected?.citations.find((citation) => citation.verification_status === "verified" && citation.official_reference_url)
+    ?? selected?.citations.find((citation) => citation.official_reference_url);
+  const sourceBackedRecords = health?.total_records ?? (catalogMode === "verified" ? total : 0);
+  const researchRecords = health?.research_index_records ?? (catalogMode === "research" ? total : 0);
+  const priorityJurisdictions = health?.priority_jurisdictions ?? 0;
+  const isVerifiedMode = catalogMode === "verified";
+
+  function changeMode(mode: CatalogMode) {
+    setCatalogMode(mode);
+    setSelected(null);
+  }
+
+  function changeJurisdiction(type: string) {
+    setJurisdiction(type);
+    setSelected(null);
+  }
 
   return (
     <main>
@@ -156,12 +172,12 @@ export default function TheLaw() {
         <div className="hero-overlay" />
         <div className="hero-content">
           <span className="eyebrow"><ShieldCheck size={15} /> Source-aware legal research</span>
-          <h1>Know the law.<br /><em>Track the change.</em></h1>
-          <p>Research federal and state legal records first—then go directly to an official government source when an exact citation has been connected.</p>
+          <h1>Know the law.<br /><em>Know the proof.</em></h1>
+          <p>Start with source-backed federal and state records. Use the wider research index only when you want leads that still require source verification.</p>
           <div className="hero-stats">
-            <span><strong>{totalRecords.toLocaleString()}</strong> state + federal records</span>
-            <span><strong>{priorityJurisdictions}</strong> priority jurisdictions</span>
-            <span><strong>{machineChecked}</strong> machine-checked records</span>
+            <span><strong>{sourceBackedRecords.toLocaleString()}</strong> source-backed records</span>
+            <span><strong>{researchRecords.toLocaleString()}</strong> research-index records</span>
+            <span><strong>{priorityJurisdictions}</strong> source-backed jurisdictions</span>
           </div>
         </div>
       </section>
@@ -172,28 +188,38 @@ export default function TheLaw() {
           <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search a law, topic, obligation, or affected party" aria-label="Search laws" />
           {query && <button className="icon-button" onClick={() => setQuery("")} aria-label="Clear search"><X size={18} /></button>}
         </div>
-        <div className="filters" aria-label="Jurisdiction filters">
-          {jurisdictionTypes.map((type) => <button key={type} className={jurisdiction === type ? "active" : ""} onClick={() => setJurisdiction(type)}>{type}</button>)}
+
+        <div className="filters" aria-label="Trust level">
+          <button className={isVerifiedMode ? "active" : ""} onClick={() => changeMode("verified")}>Verified sources</button>
+          <button className={!isVerifiedMode ? "active" : ""} onClick={() => changeMode("research")}>Research index</button>
         </div>
-        <p className="priority-note"><ShieldCheck size={15} /> State and federal are the active source priority. A machine source check confirms source identity and citation matching—not legal advice or attorney review.</p>
+
+        <div className="filters" aria-label="Jurisdiction filters">
+          {jurisdictionTypes.map((type) => <button key={type} className={jurisdiction === type ? "active" : ""} onClick={() => changeJurisdiction(type)}>{type}</button>)}
+        </div>
+
+        {isVerifiedMode
+          ? <p className="priority-note"><ShieldCheck size={15} /> Every result in this mode has a completed source check plus a verified exact official-source citation. Machine source check does not mean attorney review or legal advice.</p>
+          : <p className="priority-note"><Database size={15} /> Research Index contains broader records that may still be draft or unverified. Treat these as research leads only and confirm them with an official source before relying on them.</p>}
       </section>
 
       <section className="catalog">
         <div className="catalog-heading">
           <div>
-            <span className="section-label">LEGAL CATALOG</span>
-            <h2>{query ? `Results for “${query}”` : `${jurisdiction} records`}</h2>
+            <span className="section-label">{isVerifiedMode ? "SOURCE-BACKED CATALOG" : "RESEARCH INDEX — UNVERIFIED LEADS INCLUDED"}</span>
+            <h2>{query ? `Results for “${query}”` : `${jurisdiction} ${isVerifiedMode ? "source-backed records" : "research records"}`}</h2>
           </div>
           <span className="result-count">{loading ? "Searching…" : `${total.toLocaleString()} records`}</span>
         </div>
 
         {error && <div className="state-card error"><ShieldCheck size={24} /><strong>Catalog unavailable</strong><p>{error}</p></div>}
         {loading && <div className="loading-grid" aria-label="Loading records">{[1,2,3,4,5,6].map((item) => <div className="skeleton" key={item} />)}</div>}
-        {!loading && !error && visible.length === 0 && <div className="state-card"><Search size={24} /><strong>No matching records</strong><p>Try a broader phrase or another jurisdiction level.</p></div>}
+        {!loading && !error && visible.length === 0 && <div className="state-card"><Search size={24} /><strong>{isVerifiedMode ? "No source-backed records yet" : "No matching research records"}</strong><p>{isVerifiedMode ? "Try another search or jurisdiction, or switch to Research Index for records that still require source verification." : "Try a broader phrase or another jurisdiction level."}</p></div>}
 
         {!loading && !error && <div className="law-grid">
           {visible.map((law) => {
-            const citation = law.citations[0];
+            const citation = law.citations.find((item) => item.verification_status === "verified") ?? law.citations[0];
+            const status = verificationLabel(law.verification_status, law.source_confidence);
             return <button className="law-card" key={law.id} onClick={() => setSelected(law)}>
               <div className="card-top">
                 <span className="jurisdiction"><MapPin size={13} />{law.jurisdiction?.name}</span>
@@ -203,7 +229,7 @@ export default function TheLaw() {
               {citation && <code>{citation.citation_text}</code>}
               <p>{law.short_summary || "Open this record for the current summary and source information."}</p>
               <div className="card-foot">
-                <span className="verified"><CheckCircle2 size={14} />{verificationLabel(law.verification_status, law.source_confidence)}</span>
+                <span className="verified"><CheckCircle2 size={14} />{isVerifiedMode ? status : `Research only · ${status}`}</span>
                 <ArrowUpRight size={17} />
               </div>
             </button>;
@@ -227,9 +253,9 @@ export default function TheLaw() {
       </section>
 
       <section className="trust-band">
-        <div><Database size={25} /><span><strong>Bounded public API</strong><small>Public catalog access is capped and separated from private editorial evidence.</small></span></div>
-        <div><BookOpen size={25} /><span><strong>Source-first</strong><small>Exact citations and issuing-government references are shown when connected.</small></span></div>
-        <div><ShieldCheck size={25} /><span><strong>Honest status</strong><small>Machine, human, and attorney review are never presented as the same thing.</small></span></div>
+        <div><ShieldCheck size={25} /><span><strong>Verified means source-backed</strong><small>Exact official-source citation required before a record enters the default catalog.</small></span></div>
+        <div><Database size={25} /><span><strong>Research stays research</strong><small>Draft and unverified records remain useful without masquerading as verified law.</small></span></div>
+        <div><BookOpen size={25} /><span><strong>Review levels stay distinct</strong><small>Machine, human, and attorney review are never presented as the same thing.</small></span></div>
       </section>
 
       <footer>
@@ -242,9 +268,10 @@ export default function TheLaw() {
         <article className="detail-panel" role="dialog" aria-modal="true" aria-labelledby="law-title" onMouseDown={(event) => event.stopPropagation()}>
           <button className="close-button" onClick={() => setSelected(null)} aria-label="Close details"><X size={20} /></button>
           <button className="back-button" onClick={() => setSelected(null)}><ArrowLeft size={16} /> Back to results</button>
-          <div className="detail-meta"><span>{selected.jurisdiction?.name}</span><span>{selected.law_type}</span><span>{verificationLabel(selected.verification_status, selected.source_confidence)}</span></div>
+          <div className="detail-meta"><span>{selected.jurisdiction?.name}</span><span>{selected.law_type}</span><span>{isVerifiedMode ? verificationLabel(selected.verification_status, selected.source_confidence) : `Research only · ${verificationLabel(selected.verification_status, selected.source_confidence)}`}</span></div>
           <h2 id="law-title">{selected.law_title}</h2>
           {selected.citations[0] && <code className="detail-citation">{selected.citations[0].citation_text}</code>}
+          {!isVerifiedMode && <div className="source-unavailable">Research-index record: verify this record against an official government source before relying on it.</div>}
           <section><h3>Plain-language summary</h3><p>{selected.long_summary || selected.short_summary || "A detailed summary has not been published for this record."}</p></section>
           <div className="detail-grid">
             <section><h3>Effective date</h3><p>{selected.effective_date ? new Date(`${selected.effective_date}T12:00:00`).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "Not recorded"}</p></section>
@@ -252,7 +279,9 @@ export default function TheLaw() {
           </div>
           <section><h3>Affected parties</h3><p>{selected.affected_parties_text || "Not specified in the published record."}</p></section>
           {selected.last_verified_at && <section><h3>Source checked</h3><p>{new Date(selected.last_verified_at).toLocaleString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p></section>}
-          {source?.official_reference_url ? <a className="official-button" href={source.official_reference_url} target="_blank" rel="noreferrer">Open exact official source <ArrowUpRight size={17} /></a> : <div className="source-unavailable">No exact official source link is published for this record yet.</div>}
+          {source?.official_reference_url
+            ? <a className="official-button" href={source.official_reference_url} target="_blank" rel="noreferrer">Open exact official source <ArrowUpRight size={17} /></a>
+            : <div className="source-unavailable">No exact verified official-source link is published for this record yet.</div>}
         </article>
       </div>}
     </main>
