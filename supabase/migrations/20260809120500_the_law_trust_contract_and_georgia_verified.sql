@@ -6,29 +6,18 @@
 
 begin;
 
--- 1) Add/refresh the exact official Georgia General Assembly source for HB 1009 / Act 395.
 with ga as (
   select id from public.rr_jurisdictions where slug = 'georgia' limit 1
 )
 insert into public.rr_legal_sources (
-  source_title,
-  source_url,
-  source_type,
-  source_date,
-  source_status,
-  trust_label,
-  jurisdiction_id,
-  summary,
-  authority_level,
-  authority_rank,
-  verification_status,
-  last_checked_at,
-  retrieval_metadata
+  source_title, source_url, source_type, source_date, source_status, trust_label,
+  jurisdiction_id, summary, authority_level, authority_rank, verification_status,
+  last_checked_at, retrieval_metadata
 )
 select
   'Georgia HB 1009 / Act 395 — Georgia General Assembly',
   'https://www.legis.ga.gov/legislation/72304',
-  'official_legislation',
+  'legislative_text',
   date '2026-05-05',
   'approved',
   'official',
@@ -60,28 +49,14 @@ on conflict (source_url) where source_url is not null do update set
   retrieval_metadata = excluded.retrieval_metadata,
   updated_at = now();
 
--- 2) Add/refresh the public research record. This is machine source-checked,
--- not human- or attorney-reviewed.
 with ga as (
   select id from public.rr_jurisdictions where slug = 'georgia' limit 1
 )
 insert into public.rr_law_records (
-  law_title,
-  slug,
-  jurisdiction_id,
-  law_type,
-  short_summary,
-  long_summary,
-  affected_parties_text,
-  effective_date,
-  status,
-  publication_status,
-  verification_status,
-  last_verified_at,
-  next_review_at,
-  risk_level,
-  source_confidence,
-  published_at
+  law_title, slug, jurisdiction_id, law_type, short_summary, long_summary,
+  affected_parties_text, effective_date, status, publication_status,
+  verification_status, last_verified_at, next_review_at, risk_level,
+  source_confidence, published_at
 )
 select
   'Georgia HB 1009 / Act 395 — Student Personal Electronic Device Policies',
@@ -119,7 +94,6 @@ on conflict (slug) do update set
   published_at = coalesce(public.rr_law_records.published_at, excluded.published_at),
   updated_at = now();
 
--- 3) Connect the record to the exact official source.
 with law as (
   select id from public.rr_law_records
   where slug = 'ga-hb-1009-act-395-student-electronic-device-policies'
@@ -133,7 +107,6 @@ insert into public.rr_source_law_records (source_id, law_record_id)
 select source.id, law.id from source cross join law
 on conflict (source_id, law_record_id) do nothing;
 
--- Keep exactly one canonical verified citation for this source/record pair.
 delete from public.rr_citations c
 using public.rr_law_records l
 where c.law_record_id = l.id
@@ -146,26 +119,19 @@ with law as (
   limit 1
 )
 insert into public.rr_citations (
-  law_record_id,
-  citation_text,
-  citation_type,
-  official_reference_url,
-  verification_status,
-  last_verified_at,
-  quote_excerpt
+  law_record_id, citation_text, citation_type, official_reference_url,
+  verification_status, last_verified_at, quote_excerpt
 )
 select
   law.id,
   'Georgia HB 1009 (2025–2026 Regular Session), Act 395',
-  'official_legislation',
+  'legislative_text',
   'https://www.legis.ga.gov/legislation/72304',
   'verified',
   now(),
   null
 from law;
 
--- 4) Store a machine-verification evidence packet. This proves source/citation
--- matching only; it does not claim attorney review.
 with law as (
   select id from public.rr_law_records
   where slug = 'ga-hb-1009-act-395-student-electronic-device-policies'
@@ -176,16 +142,8 @@ with law as (
   limit 1
 )
 insert into public.rr_verification_evidence (
-  law_record_id,
-  source_id,
-  check_method,
-  check_status,
-  title_match,
-  citation_match,
-  jurisdiction_match,
-  source_currency_text,
-  checked_at,
-  evidence
+  law_record_id, source_id, check_method, check_status, title_match,
+  citation_match, jurisdiction_match, source_currency_text, checked_at, evidence
 )
 select
   law.id,
@@ -216,7 +174,6 @@ on conflict (law_record_id, source_id, check_method) do update set
   checked_at = excluded.checked_at,
   evidence = excluded.evidence;
 
--- 5) Trusted catalog: source-backed records only.
 create or replace function public.rr_get_public_law_catalog(
   p_query text default null,
   p_jurisdiction_type text default 'federal',
@@ -294,8 +251,6 @@ as $$
   );
 $$;
 
--- 6) Bounded research index: preserves the broader backlog, but under an RPC
--- whose name and response explicitly identify the material as research-only.
 create or replace function public.rr_get_public_research_catalog(
   p_query text default null,
   p_jurisdiction_type text default 'federal',
@@ -366,7 +321,6 @@ as $$
   );
 $$;
 
--- 7) Health numbers now distinguish trusted public records from the backlog.
 create or replace function public.rr_get_public_catalog_health()
 returns jsonb
 language sql
@@ -404,10 +358,8 @@ as $$
   );
 $$;
 
--- Preserve bounded RPC-only public access.
 revoke all on function public.rr_get_public_research_catalog(text,text,integer,integer) from public;
 grant execute on function public.rr_get_public_research_catalog(text,text,integer,integer) to anon,authenticated,service_role;
-
 revoke all on function public.rr_get_public_law_catalog(text,text,integer,integer) from public;
 revoke all on function public.rr_get_public_catalog_health() from public;
 grant execute on function public.rr_get_public_law_catalog(text,text,integer,integer) to anon,authenticated,service_role;
