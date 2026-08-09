@@ -1,6 +1,8 @@
 'use client'
 
-const CURRENT_LAW_MOTION = 'https://dzlmtvodpyhetvektfuo.supabase.co/storage/v1/object/public/brand-graphics/kollective/animations/THE_LAW_ANI.mp4'
+import { LAW_APPROVED_SUPABASE_URL } from '../config/law-public-backend'
+
+const CURRENT_LAW_MOTION = `${LAW_APPROVED_SUPABASE_URL}/storage/v1/object/public/brand-graphics/kollective/animations/THE_LAW_ANI.mp4`
 
 export default function CurrentLawMotion() {
   return (
