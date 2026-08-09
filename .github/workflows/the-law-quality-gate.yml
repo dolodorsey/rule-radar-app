@@ -23,5 +23,13 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci
-      - name: Verify isolation, lint, types, build, and critical audit
-        run: npm run verify
+      - name: Verify backend isolation and trust contract
+        run: npm run verify:backend
+      - name: Lint source
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Production build
+        run: npm run build
+      - name: Critical dependency audit
+        run: npm audit --omit=dev --audit-level=critical
