@@ -35,6 +35,20 @@ type CatalogResponse = {
   limit: number;
   offset: number;
   trust_mode?: "source_backed" | "research_only";
+  jurisdiction_type?: string;
+  jurisdiction_name?: string | null;
+};
+
+type CatalogFacet = {
+  name: string;
+  jurisdiction_type: "federal" | "state" | "city";
+  research_records: number;
+  source_backed_records: number;
+};
+
+type FacetResponse = {
+  jurisdictions: CatalogFacet[];
+  generated_at: string;
 };
 
 type LegalSource = {
@@ -63,7 +77,7 @@ type CatalogHealth = {
 
 type CatalogMode = "verified" | "research";
 
-const jurisdictionTypes = ["Federal", "State"];
+const jurisdictionTypes = ["Federal", "State", "City"];
 
 function verificationLabel(status: string | null, confidence: number | null) {
   if (status === "attorney_reviewed") return "Attorney reviewed";
@@ -80,25 +94,32 @@ export default function TheLaw() {
   const [total, setTotal] = useState(0);
   const [query, setQuery] = useState("");
   const [jurisdiction, setJurisdiction] = useState("Federal");
+  const [jurisdictionName, setJurisdictionName] = useState("");
   const [catalogMode, setCatalogMode] = useState<CatalogMode>("verified");
   const [selected, setSelected] = useState<Law | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [officialSources, setOfficialSources] = useState<LegalSource[]>([]);
   const [health, setHealth] = useState<CatalogHealth | null>(null);
+  const [facets, setFacets] = useState<CatalogFacet[]>([]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadControlPlane() {
-      const [sourcesResult, healthResult] = await Promise.all([
+      const [sourcesResult, healthResult, facetResult] = await Promise.all([
         supabase.rpc("rr_get_public_official_sources", { p_limit: 12 }),
         supabase.rpc("rr_get_public_catalog_health"),
+        supabase.rpc("rr_get_public_catalog_facets"),
       ]);
 
       if (cancelled) return;
       if (!sourcesResult.error) setOfficialSources((sourcesResult.data as LegalSource[] | null) ?? []);
       if (!healthResult.error) setHealth((healthResult.data as CatalogHealth | null) ?? null);
+      if (!facetResult.error) {
+        const result = facetResult.data as FacetResponse | null;
+        setFacets(result?.jurisdictions ?? []);
+      }
     }
 
     void loadControlPlane();
@@ -112,10 +133,11 @@ export default function TheLaw() {
       setLoading(true);
       setError("");
 
-      const rpcName = catalogMode === "verified" ? "rr_get_public_law_catalog" : "rr_get_public_research_catalog";
-      const { data, error: requestError } = await supabase.rpc(rpcName, {
+      const { data, error: requestError } = await supabase.rpc("rr_get_public_catalog_v2", {
+        p_mode: catalogMode,
         p_query: query.trim() || null,
         p_jurisdiction_type: jurisdiction.toLowerCase(),
+        p_jurisdiction_name: jurisdictionName || null,
         p_limit: 80,
         p_offset: 0,
       });
@@ -137,15 +159,17 @@ export default function TheLaw() {
 
     const timer = window.setTimeout(() => { void load(); }, query ? 250 : 0);
     return () => { cancelled = true; window.clearTimeout(timer); };
-  }, [query, jurisdiction, catalogMode]);
+  }, [query, jurisdiction, jurisdictionName, catalogMode]);
 
   const visible = useMemo(() => laws.filter((law) => law.jurisdiction), [laws]);
+  const jurisdictionFacets = useMemo(() => facets.filter((item) => item.jurisdiction_type === jurisdiction.toLowerCase()), [facets, jurisdiction]);
   const source = selected?.citations.find((citation) => citation.verification_status === "verified" && citation.official_reference_url)
     ?? selected?.citations.find((citation) => citation.official_reference_url);
   const sourceBackedRecords = health?.total_records ?? (catalogMode === "verified" ? total : 0);
   const researchRecords = health?.research_index_records ?? (catalogMode === "research" ? total : 0);
   const priorityJurisdictions = health?.priority_jurisdictions ?? 0;
   const isVerifiedMode = catalogMode === "verified";
+  const scopeLabel = jurisdictionName || jurisdiction;
 
   function changeMode(mode: CatalogMode) {
     setCatalogMode(mode);
@@ -154,6 +178,7 @@ export default function TheLaw() {
 
   function changeJurisdiction(type: string) {
     setJurisdiction(type);
+    setJurisdictionName("");
     setSelected(null);
   }
 
@@ -173,7 +198,7 @@ export default function TheLaw() {
         <div className="hero-content">
           <span className="eyebrow"><ShieldCheck size={15} /> Source-aware legal research</span>
           <h1>Know the law.<br /><em>Know the proof.</em></h1>
-          <p>Start with source-backed federal and state records. Use the wider research index only when you want leads that still require source verification.</p>
+          <p>Start with source-backed federal, state, and city records. Use the wider research index when you want broader leads that still require source verification.</p>
           <div className="hero-stats">
             <span><strong>{sourceBackedRecords.toLocaleString()}</strong> source-backed records</span>
             <span><strong>{researchRecords.toLocaleString()}</strong> research-index records</span>
@@ -194,27 +219,35 @@ export default function TheLaw() {
           <button className={!isVerifiedMode ? "active" : ""} onClick={() => changeMode("research")}>Research index</button>
         </div>
 
-        <div className="filters" aria-label="Jurisdiction filters">
+        <div className="filters" aria-label="Jurisdiction level filters">
           {jurisdictionTypes.map((type) => <button key={type} className={jurisdiction === type ? "active" : ""} onClick={() => changeJurisdiction(type)}>{type}</button>)}
         </div>
 
+        {jurisdictionFacets.length > 0 && <div className="filters" aria-label={`${jurisdiction} jurisdiction filters`}>
+          <button className={!jurisdictionName ? "active" : ""} onClick={() => { setJurisdictionName(""); setSelected(null); }}>All {jurisdiction}</button>
+          {jurisdictionFacets.map((item) => {
+            const count = isVerifiedMode ? item.source_backed_records : item.research_records;
+            return <button key={`${item.jurisdiction_type}-${item.name}`} className={jurisdictionName === item.name ? "active" : ""} onClick={() => { setJurisdictionName(item.name); setSelected(null); }}>{item.name} · {count}</button>;
+          })}
+        </div>}
+
         {isVerifiedMode
           ? <p className="priority-note"><ShieldCheck size={15} /> Every result in this mode has a completed source check plus a verified exact official-source citation. Machine source check does not mean attorney review or legal advice.</p>
-          : <p className="priority-note"><Database size={15} /> Research Index contains broader records that may still be draft or unverified. Treat these as research leads only and confirm them with an official source before relying on them.</p>}
+          : <p className="priority-note"><Database size={15} /> Research Index contains broader published records that may still be unverified. Treat these as research leads only and confirm them with an official source before relying on them.</p>}
       </section>
 
       <section className="catalog">
         <div className="catalog-heading">
           <div>
             <span className="section-label">{isVerifiedMode ? "SOURCE-BACKED CATALOG" : "RESEARCH INDEX — UNVERIFIED LEADS INCLUDED"}</span>
-            <h2>{query ? `Results for “${query}”` : `${jurisdiction} ${isVerifiedMode ? "source-backed records" : "research records"}`}</h2>
+            <h2>{query ? `Results for “${query}” in ${scopeLabel}` : `${scopeLabel} ${isVerifiedMode ? "source-backed records" : "research records"}`}</h2>
           </div>
           <span className="result-count">{loading ? "Searching…" : `${total.toLocaleString()} records`}</span>
         </div>
 
         {error && <div className="state-card error"><ShieldCheck size={24} /><strong>Catalog unavailable</strong><p>{error}</p></div>}
         {loading && <div className="loading-grid" aria-label="Loading records">{[1,2,3,4,5,6].map((item) => <div className="skeleton" key={item} />)}</div>}
-        {!loading && !error && visible.length === 0 && <div className="state-card"><Search size={24} /><strong>{isVerifiedMode ? "No source-backed records yet" : "No matching research records"}</strong><p>{isVerifiedMode ? "Try another search or jurisdiction, or switch to Research Index for records that still require source verification." : "Try a broader phrase or another jurisdiction level."}</p></div>}
+        {!loading && !error && visible.length === 0 && <div className="state-card"><Search size={24} /><strong>{isVerifiedMode ? "No source-backed records in this scope yet" : "No matching research records"}</strong><p>{isVerifiedMode ? "Choose another jurisdiction or switch to Research Index for published records that still require source verification." : "Try a broader phrase or another jurisdiction."}</p></div>}
 
         {!loading && !error && <div className="law-grid">
           {visible.map((law) => {
@@ -254,7 +287,7 @@ export default function TheLaw() {
 
       <section className="trust-band">
         <div><ShieldCheck size={25} /><span><strong>Verified means source-backed</strong><small>Exact official-source citation required before a record enters the default catalog.</small></span></div>
-        <div><Database size={25} /><span><strong>Research stays research</strong><small>Draft and unverified records remain useful without masquerading as verified law.</small></span></div>
+        <div><Database size={25} /><span><strong>Research stays research</strong><small>Published unverified records remain useful without masquerading as verified law.</small></span></div>
         <div><BookOpen size={25} /><span><strong>Review levels stay distinct</strong><small>Machine, human, and attorney review are never presented as the same thing.</small></span></div>
       </section>
 

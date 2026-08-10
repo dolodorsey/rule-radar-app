@@ -45,16 +45,22 @@ for (const requiredName of [
 
 const page = readFileSync(join(root, 'src/app/page.tsx'), 'utf8')
 for (const rpc of [
-  'rr_get_public_law_catalog',
-  'rr_get_public_research_catalog',
+  'rr_get_public_catalog_v2',
+  'rr_get_public_catalog_facets',
   'rr_get_public_official_sources',
   'rr_get_public_catalog_health',
 ]) {
   if (!page.includes(rpc)) failures.push(`src/app/page.tsx: required bounded RPC ${rpc} is missing`)
 }
+for (const obsoleteRpc of ['rr_get_public_law_catalog', 'rr_get_public_research_catalog']) {
+  if (page.includes(obsoleteRpc)) failures.push(`src/app/page.tsx: obsolete catalog RPC ${obsoleteRpc} is still used instead of v2 bounded discovery`)
+}
 if (/\.from\("rr_/.test(page)) failures.push('src/app/page.tsx: direct rr_* table access detected; use bounded public RPCs')
 for (const disclosure of ['Verified sources', 'Research index', 'Research only', 'Source review required']) {
   if (!page.includes(disclosure)) failures.push(`src/app/page.tsx: trust disclosure "${disclosure}" is missing`)
+}
+for (const discovery of ['Federal', 'State', 'City', 'jurisdictionName', 'source_backed_records', 'research_records']) {
+  if (!page.includes(discovery)) failures.push(`src/app/page.tsx: jurisdiction discovery contract "${discovery}" is missing`)
 }
 
 if (failures.length) {
@@ -66,4 +72,4 @@ if (failures.length) {
   process.exit(1)
 }
 
-console.log(`THE LAW backend isolation and trust contract verified across ${sourceFiles.length} source files.`)
+console.log(`THE LAW backend isolation, trust, and v2 discovery contract verified across ${sourceFiles.length} source files.`)
